@@ -1,0 +1,6 @@
+projectKey=Shift-Roaster
+serverUrl=http://localhost:9000
+serverVersion=10.7.0.96327
+dashboardUrl=http://localhost:9000/dashboard?id=Shift-Roaster
+ceTaskId=19b30fb2-4d03-434e-9b54-62496128d5dc
+ceTaskUrl=http://localhost:9000/api/ce/task?id=19b30fb2-4d03-434e-9b54-62496128d5dc

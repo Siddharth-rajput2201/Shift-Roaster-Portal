@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Right Side Menu -->
+    <div class="right-menu">
+        <a href="#" id="logout">Logout</a>
+        <a href="pto_management.html" id="managepto">Manage PTO</a>
+        <a href="shift_management.html" id="manageshift" style="display: none;">Manage Shift</a> <!-- Initially hidden -->
+    </div>
+
+    <!-- Team Shifts Section -->
+    <div class="shiftcontainer">
+        <div class="team-shifts">
+            <h2>Team Shifts</h2>
+            <table id="shiftsTable">
+                <thead>
+                    <tr>
+                        <th>Analyst Name</th>
+                        <th>Shift Name</th>
+                        <th>Week Off</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th id="actionHeader" style="display: none;">Action</th> <!-- New Action Column (hidden by default) -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Shifts will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="shiftcontainer">
+        <div class="team-shifts">
+            <h2>Team Shifts Day Wise</h2>
+            <table id="eachdayshiftsTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Day</th>
+                        <!-- Analyst columns will be added dynamically here -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Shifts and PTO information will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function checkUserRole() {
+            const token = localStorage.getItem('access_token');
+
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/auth/protected', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const userRole = data.role;
+
+                    if (userRole === 'manager') {
+                        document.getElementById('manageshift').style.display = 'block';
+                        document.getElementById('actionHeader').style.display = ''; 
+                    }
+
+                    await fetchTeamShiftsAndPTOs(userRole);
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Error verifying user role:', error);
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function fetchTeamShiftsAndPTOs(userRole) {
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const shiftsResponse = await fetch('http://127.0.0.1:5000/shift/team_shifts', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (shiftsResponse.ok) {
+                    const shiftData = await shiftsResponse.json();
+                    const shiftsTable = document.getElementById('eachdayshiftsTable');
+                    const shiftsTableBody = shiftsTable.querySelector('tbody');
+                    const shiftsTableHead = shiftsTable.querySelector('thead tr');
+
+                    const teamShifts = shiftData.team_shifts;
+                    const startDate = new Date(teamShifts[0].start_date);
+                    const endDate = new Date(teamShifts[0].end_date);
+                    const dateRange = getDateRange(startDate, endDate);
+
+                    // Dynamically add column headers for analysts
+                    teamShifts.forEach(shift => {
+                        const th = document.createElement('th');
+                        th.textContent = shift.analyst_name;
+                        shiftsTableHead.appendChild(th);
+                    });
+
+                    // Populate rows dynamically for each date
+                    dateRange.forEach(date => {
+                        const row = document.createElement('tr');
+
+                        const dateCell = document.createElement('td');
+                        dateCell.textContent = formatDate(date);
+                        row.appendChild(dateCell);
+
+                        const dayCell = document.createElement('td');
+                        dayCell.textContent = formatDay(date);
+                        row.appendChild(dayCell);
+
+                        teamShifts.forEach(shift => {
+                            const shiftCell = document.createElement('td');
+
+                            // Convert shift.date to 'YYYY-MM-DD' format for comparison
+                            const shiftDate = date.toISOString().split('T')[0];
+                            const isWeekOff = isWeekOffDay(date, shift.week_off);
+
+                            // Logic to check for PTO
+                            let isPTO = false;
+                            shift.approved_ptos.forEach(function (ptoDate) {
+                                console.log("Comparing PTO Date:", ptoDate, "with Shift Date:", shiftDate); // Debugging log
+                                if (ptoDate === shiftDate) {
+                                    isPTO = true;
+                                }
+                            });
+
+                            // Debugging logs to see the current state
+                            console.log("isWeekOff:", isWeekOff, "isPTO:", isPTO, "shift:", shift);
+
+                            // Set the content of the shift cell based on the conditions
+                            if (isWeekOff) {
+                                shiftCell.textContent = 'Week Off';
+                            } else if (isPTO) {
+                                shiftCell.textContent = 'PTO';
+                            } else {
+                                shiftCell.textContent = shift.shift_name;
+                            }
+
+                            // Optional: Additional log to verify what textContent is being set
+                            console.log("Final shiftCell text:", shiftCell.textContent);
+
+                            row.appendChild(shiftCell);
+                        });
+
+                        shiftsTableBody.appendChild(row);
+                    });
+
+                } else {
+                    console.error('Failed to fetch team shifts');
+                }
+            } catch (error) {
+                console.error('Error fetching shifts:', error);
+            }
+        }
+
+        function isWeekOffDay(date, weekOffDays) {
+            const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+            return weekOffDays.split('-').includes(dayOfWeek);
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDay(date) {
+            return date.toLocaleDateString('en-US', { weekday: 'long' });
+        }
+
+        function getDateRange(startDate, endDate) {
+            const dateArray = [];
+            let currentDate = new Date(startDate);
+
+            while (currentDate <= new Date(endDate)) {
+                dateArray.push(new Date(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            return dateArray;
+        }
+
+        document.addEventListener('DOMContentLoaded', checkUserRole);
+
+        // Logout functionality
+        document.getElementById('logout').addEventListener('click', function () {
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

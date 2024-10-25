@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shift Management - Shift Roaster Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Right Side Menu -->
+    <div class="right-menu">
+        <a href="#" id="logout">Logout</a>
+        <a href="pto_management.html">Manage PTO</a>
+        <a href="dashboard.html">Dashboard</a>
+    </div>
+
+    <!-- Main Shift Management Container -->
+    <div class="shiftcontainer">
+        <h2 class="shifth2">Shift Management</h2>
+
+        <!-- Date Selection Section -->
+        <div class="datecontainer"> 
+            <div class="date-selection">
+                <label for="start-date">Start Date:</label>
+                <input type="date" id="start-date" required>
+                <label for="end-date">End Date:</label>
+                <input type="date" id="end-date" required>
+            </div>
+        </div>
+
+        <!-- Analysts Section -->
+        <div class="analyst-container" id="analyst-container">
+            <!-- Analysts will be populated here -->
+        </div>
+
+        <!-- Shift Boxes Section -->
+        <div class="shift-container">
+            <div class="shift-box" id="morning-shift" data-shift="Morning">
+                <h3>Morning Shift</h3>
+            </div>
+            <div class="shift-box" id="afternoon-shift" data-shift="Afternoon">
+                <h3>Afternoon Shift</h3>
+            </div>
+            <div class="shift-box" id="night-shift" data-shift="Night">
+                <h3>Night Shift</h3>
+            </div>
+        </div>
+
+        <!-- Assign Shift Button -->
+        <div class="assign-shift-container">
+            <button id="assign-shift">Assign Shift</button>
+        </div>
+    </div>
+
+    <script>
+        // Drag and drop functionality
+
+        document.addEventListener("DOMContentLoaded", () => {
+            checkUserRole();
+        });
+
+        function createAnalystBox(analyst) {
+            const analystBox = document.createElement("div");
+            analystBox.classList.add("analyst-box");
+            analystBox.setAttribute("draggable", "true");
+            analystBox.dataset.analystId = analyst.id;
+            analystBox.innerHTML = `
+                ${analyst.username}
+                <br>
+                <select>
+                    <option value="monday-tuesday">Mon-Tue</option>
+                    <option value="tuesday-wednesday">Tue-Wed</option>
+                    <option value="wednesday-thursday">Wed-Thu</option>
+                    <option value="thursday-friday">Thu-Fri</option>
+                    <option value="friday-saturday">Fri-Sat</option>
+                    <option value="saturday-sunday">Sat-Sun</option>
+                    <option value="sunday-monday">Sun-Mon</option>
+                </select>
+            `;
+
+            // Attach drag event listeners
+            analystBox.addEventListener("dragstart", dragStart);
+            analystBox.addEventListener("dragend", dragEnd);
+
+            return analystBox;
+        }
+
+        function dragStart(e) {
+            e.dataTransfer.setData("text/plain", e.target.dataset.analystId);
+            e.target.classList.add("highlight");
+        }
+
+        function dragEnd(e) {
+            e.target.classList.remove("highlight");
+        }
+
+        const shiftBoxes = document.querySelectorAll(".shift-box");
+
+        shiftBoxes.forEach(shiftBox => {
+            shiftBox.addEventListener("dragover", dragOver);
+            shiftBox.addEventListener("drop", drop);
+        });
+
+        function dragOver(e) {
+            e.preventDefault();
+            e.target.classList.add("highlight");
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const analystId = e.dataTransfer.getData("text/plain");
+            const analystBox = document.querySelector(`.analyst-box[data-analyst-id="${analystId}"]`);
+            e.target.classList.remove("highlight");
+            e.target.appendChild(analystBox);
+        }
+
+        // Check user authentication and role
+        async function checkUserRole() {
+            const token = localStorage.getItem('access_token');
+
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/auth/protected', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const userRole = data.role;
+                    const teamId = data.team_id;
+
+                    if (userRole !== 'manager') {
+                        window.location.href = 'index.html';
+                    }
+
+                    await populateAnalysts(teamId);
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function populateAnalysts(teamId) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/team/${teamId}/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const analystContainer = document.getElementById('analyst-container');
+
+                    data.users.forEach(user => {
+                        if (user.role === 'analyst') {
+                            const analystBox = createAnalystBox(user);
+                            analystContainer.appendChild(analystBox);
+                        }
+                    });
+                } else {
+                    console.error('Error fetching analysts:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error fetching analysts:', error);
+            }
+        }
+
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        });
+
+        // Assign Shift button functionality
+        document.getElementById('assign-shift').addEventListener('click', async () => {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+
+            if (!startDate || !endDate) {
+                alert("Please select both start and end dates.");
+                return;
+            }
+
+            const shifts = {
+                morning: Array.from(document.querySelectorAll("#morning-shift .analyst-box")).map(box => {
+                    return {
+                        analyst_id: box.dataset.analystId,
+                        shift_name: "Morning",
+                        week_off: box.querySelector("select").value,
+                    };
+                }),
+                afternoon: Array.from(document.querySelectorAll("#afternoon-shift .analyst-box")).map(box => {
+                    return {
+                        analyst_id: box.dataset.analystId,
+                        shift_name: "Afternoon",
+                        week_off: box.querySelector("select").value,
+                    };
+                }),
+                night: Array.from(document.querySelectorAll("#night-shift .analyst-box")).map(box => {
+                    return {
+                        analyst_id: box.dataset.analystId,
+                        shift_name: "Night",
+                        week_off: box.querySelector("select").value,
+                    };
+                }),
+            };
+
+            // Prepare data to send to the backend
+            const shiftAssignments = [];
+            for (const shiftType in shifts) {
+                shifts[shiftType].forEach(shift => {
+                    if (shift.analyst_id) { // Ensure that the analyst_id is present
+                        shiftAssignments.push({
+                            analyst_id: shift.analyst_id,
+                            shift_name: shift.shift_name,
+                            week_off: shift.week_off,
+                            start_date: startDate,
+                            end_date: endDate,
+                        });
+                    }
+                });
+            }
+
+            // Send the shift assignments to the backend
+            try {
+                const response = await fetch('http://127.0.0.1:5000/shift/assign_shift', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(shiftAssignments),
+                });
+
+                if (response.ok) {
+                    alert("Shifts assigned successfully!");
+                    // Optionally refresh the page or update the UI
+                    // location.reload(); // Uncomment to refresh the page
+                } else {
+                    const errorData = await response.json();
+                    alert(`Failed to assign shifts: ${errorData.error}`);
+                }
+            } catch (error) {
+                console.error('Error assigning shifts:', error);
+                alert("An error occurred while assigning shifts.");
+            }
+        });
+    </script>
+
+</body>
+
+</html>

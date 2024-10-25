@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Team - Shift Roaster Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="addteamcontainer">
+    <div class="form-box">
+        <h2>Add Team</h2>
+        <form id="add-team-form">
+            <input type="text" id="team-name" placeholder="Enter Team Name" required>
+            <button type="submit">Add Team</button>
+        </form>
+        <p id="add-team-response-message"></p>
+        <p>Sign Up you account? <a href="signup.html" style="color: #4caf50;">Sign Up here</a></p>
+    </div>
+</div>
+
+    <script>
+        document.getElementById('add-team-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const teamName = document.getElementById('team-name').value;
+
+            fetch('http://127.0.0.1:5000/team/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: teamName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('add-team-response-message').textContent = data.message || data.error;
+                if (data.message) {
+                    document.getElementById('team-name').value = '';  // Clear input field on success
+                }
+            })
+            .catch(error => console.error('Error adding team:', error));
+        });
+    </script>
+</body>
+</html>

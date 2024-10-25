@@ -1,0 +1,342 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1c1c1c; /* Dark background */
+    color: #ffffff; /* Light text color */
+    margin: 0;
+    padding: 0;
+}
+
+.addteamcontainer {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto; /* Add top margin for spacing */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #2a2a2a; /* Slightly lighter background */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a shadow for depth */
+}
+
+.shiftcontainer {
+    width: 50%;
+    max-width: 6600px;
+    margin: 20px auto; /* Add top margin for spacing */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #2a2a2a; /* Slightly lighter background */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a shadow for depth */
+}
+
+
+.signupcontainer {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto; /* Add top margin for spacing */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #2a2a2a; /* Slightly lighter background */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a shadow for depth */
+}
+
+.logincontainer {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto; /* Add top margin for spacing */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #2a2a2a; /* Slightly lighter background */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a shadow for depth */
+}
+
+.datecontainer {
+    width: 90%;
+    max-width: 400px;
+    margin: 20px auto; /* Add top margin for spacing */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #2a2a2a; /* Slightly lighter background */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a shadow for depth */
+}
+
+.container {
+    width: 90%;
+    max-width: 750px;
+    margin: 20px auto; /* Add top margin for spacing */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #2a2a2a; /* Slightly lighter background */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a shadow for depth */
+}
+
+h2, h3 {
+    color: #5cb85c; /* Deloitte green color */
+}
+
+input, select {
+    width: 100%;
+    height: 45px; /* Set a consistent height */
+    padding: 10px; /* Uniform padding */
+    margin: 10px 0;
+    border: 1px solid #5cb85c; /* Deloitte green border */
+    border-radius: 4px;
+    background-color: #1c1c1c;
+    color: #ffffff;
+    box-sizing: border-box; /* Ensure padding doesn't affect total width */
+}
+
+button {
+    background-color: #5cb85c; /* Deloitte green */
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    height: 45px; /* Match button height with input fields */
+    width: 100%; /* Make button full width */
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #4cae4c; /* Darker green on hover */
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+    color: #ffffff; /* Light text for table content */
+}
+
+h2 {
+    text-align: center;
+}
+
+/* Right Menu Styles */
+.right-menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #333;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    width: 180px; /* Fixed width for menu */
+}
+
+.right-menu a {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 15px;
+    display: block;
+    background-color: transparent; /* Background to ensure hover covers fully */
+    border-radius: 5px; /* Rounded button edges */
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px; /* Add gap between the buttons */
+    text-align: center; /* Center align text */
+}
+
+.right-menu a:hover {
+    background-color: #5cb85c; /* Full green background on hover */
+    color: white;
+}
+
+/* PTO Status Styles */
+.pto-approved {
+    color: #1D8F4B; /* Deloitte Green (Pastel shade) */
+}
+
+.pto-rejected {
+    color: #D9534F; /* Pastel Red */
+}
+
+.pto-pending {
+    color: #F0A500; /* Orange for Pending */
+}
+
+/* Delete Button Styles */
+.delete-btn {
+    background-color: #D9534F; /* Red for Delete button */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.logout-btn {
+    background-color: #D9534F; /* Red for Delete button */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.delete-btn:hover {
+    background-color: #C9302C;
+}
+
+/* Approve Button Styles */
+.approve-btn {
+    padding: 5px 10px;
+    margin-right: 10px;
+    background-color: #5cb85c; /* Default green color */
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.approve-btn:hover {
+    background-color: #4cae4c; /* Darker green on hover */
+}
+
+/* Deny Button Styles */
+.deny-btn {
+    padding: 5px 10px;
+    background-color: #D9534F; /* Red color for Deny button */
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.deny-btn:hover {
+    background-color: #C9302C;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    justify-content: flex-start; /* Align buttons side-by-side */
+}
+
+.action-buttons button {
+    margin-right: 10px; /* Add spacing between buttons */
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+    .container {
+        width: 100%; /* Full width for mobile */
+    }
+
+    .right-menu {
+        position: static;
+        width: 100%;
+        box-shadow: none;
+    }
+
+    .right-menu a {
+        width: 100%;
+        margin: 5px 0; /* Reduce gap for mobile */
+    }
+}
+
+
+
+.shiftcontainer {
+    text-align: center;
+    margin: 30px auto;
+    max-width: 1400px;
+}
+
+.shifth2 {
+    margin-bottom: 20px;
+}
+
+.analyst-container
+{
+    display: flex;
+    justify-content: space-evenly;
+    margin-bottom: 30px;
+}
+
+.shift-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+}
+
+/* Analyst box styles */
+.analyst-box {
+    background-color:  #333;
+    padding: 10px;
+    margin: 5px;
+    width: 120px;
+    text-align: center;
+    border: 2px dashed #4caf50;
+    border-radius: 5px;
+    cursor: move;
+}
+
+.analyst-box select {
+    margin-top: 5px;
+}
+
+/* Shift box styles */
+.shift-box {
+    background-color: #333;
+    border: 2px dashed #4caf50;
+    border-radius: 10px;
+    width: 350px;
+    height: 400px;
+    padding: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    position: relative;
+}
+
+.shift-box h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Drag and Drop Highlight */
+.highlight {
+    border: 2px dashed #4caf50;
+}
+
+/* Logout Button */
+.right-menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.right-menu a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #4caf50;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+/* Styles for the date selection inputs */
+.date-selection {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.date-selection label {
+    margin: 0 10px;
+}
+
+.date-selection input {
+    padding: 5px;
+    margin: 0 10px;
+}
+
+

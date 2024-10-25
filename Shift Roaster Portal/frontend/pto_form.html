@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="script.js" defer></script>
+    <style>
+        /* Centering the Request ID */
+        .center {
+            text-align: center; /* Center text */
+        }
+    </style>
+</head>
+<body>
+    <!-- Right Side Menu -->
+    <div class="right-menu">
+        <a href="#" id="logout">Logout</a>
+        <!-- Future menu items -->
+    </div>
+
+    <div class="container">
+        <h2>Your Dashboard</h2>
+
+        <!-- Analyst's PTO Section -->
+        <div id="analystView" style="display: none;">
+            <h3>Your PTO Requests</h3>
+            <table id="ptoTable">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ptoList">
+                    <!-- PTO data will be dynamically added here -->
+                </tbody>
+            </table>
+
+            <h3>Apply for PTO</h3>
+            <form id="ptoForm">
+                <input type="date" id="startDate" required>
+                <input type="date" id="endDate" required>
+                <button type="submit">Apply</button>
+            </form>
+        </div>
+
+        <!-- Manager's PTO Section -->
+        <!-- Manager's PTO Section -->
+<div id="managerView" style="display: none;">
+    <h3>PTO Requests by Analysts in Your Team</h3>
+    <table id="teamPtoTable">
+        <thead>
+            <tr>
+                <th>Request ID</th>
+                <th>Analyst Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th>Action</th> <!-- Added Action column -->
+            </tr>
+        </thead>
+        <tbody id="teamPtoList">
+            <!-- Team PTO data will be dynamically added here -->
+        </tbody>
+    </table>
+</div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+
+        if (!token) {
+            window.location.href = "index.html";
+        }
+
+        // Elements for both views
+        const analystView = document.getElementById('analystView');
+        const managerView = document.getElementById('managerView');
+        const ptoTableBody = document.getElementById('ptoList');
+        const teamPtoTableBody = document.getElementById('teamPtoList');
+
+        // Logout functionality
+        document.getElementById('logout').addEventListener('click', function () {
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        });
+
+        // On page load, determine if the user is an analyst or manager
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchUserRole();
+        });
+
+        // Function to fetch the user's role
+        function fetchUserRole() {
+            fetch('http://127.0.0.1:5000/auth/protected', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const role = data.role;
+
+                if (role === 'analyst') {
+                    renderAnalystView();
+                } else if (role === 'manager') {
+                    renderManagerView();
+                }
+            });
+        }
+
+        // Render Analyst's PTO View
+        function renderAnalystView() {
+            analystView.style.display = 'block';  // Show analyst view
+            managerView.style.display = 'none';   // Hide manager view
+            fetchPTOs();
+
+            document.getElementById('ptoForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                applyPTO();
+            });
+        }
+
+        // Render Manager's PTO View
+        function renderManagerView() {
+            analystView.style.display = 'none';   // Hide analyst view
+            managerView.style.display = 'block';  // Show manager view
+            fetchTeamPTOs();
+        }
+
+        // Fetch and render PTOs for Analyst
+        function fetchPTOs() {
+            fetch('http://127.0.0.1:5000/pto/my_ptos', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                ptoTableBody.innerHTML = '';
+                data.ptos.forEach(pto => {
+                    const row = document.createElement('tr');
+
+                    // Set the status color based on PTO status
+                    let statusClass = '';
+                    if (pto.status === 'Approved') {
+                        statusClass = 'pto-approved';
+                    } else if (pto.status === 'Denied') {
+                        statusClass = 'pto-rejected';
+                    } else {
+                        statusClass = 'pto-pending';
+                    }
+
+                    row.innerHTML = `
+                        <td class="center">${pto.pto_id}</td>
+                        <td>${pto.start_date}</td>
+                        <td>${pto.end_date}</td>
+                        <td class="${statusClass}">${pto.status}</td>
+                        <td><button class="delete-btn" data-pto-id="${pto.pto_id}">Delete</button></td>
+                    `;
+                    ptoTableBody.appendChild(row);
+                });
+
+                // Add delete functionality
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function () {
+                        const ptoId = this.getAttribute('data-pto-id');
+                        deletePTO(ptoId);
+                    });
+                });
+            });
+        }
+
+       // Fetch and render PTOs for Manager's Team
+function fetchTeamPTOs() {
+    fetch('http://127.0.0.1:5000/pto/team_ptos', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        teamPtoTableBody.innerHTML = '';
+        data.pto_requests.forEach(pto => {
+            const row = document.createElement('tr');
+
+            let statusClass = '';
+            if (pto.status === 'Approved') {
+                statusClass = 'pto-approved';
+            } else if (pto.status === 'Denied') {
+                statusClass = 'pto-rejected';
+            } else {
+                statusClass = 'pto-pending';
+            }
+
+            // Add action buttons for approve/deny
+            row.innerHTML = `
+    <td class="center">${pto.pto_id}</td>
+    <td>${pto.analyst_name}</td>
+    <td>${pto.start_date}</td>
+    <td>${pto.end_date}</td>
+    <td class="${statusClass}">${pto.status}</td>
+    <td class="action-buttons">
+        <button class="approve-btn" data-pto-id="${pto.pto_id}">Approve</button>
+        <button class="deny-btn" data-pto-id="${pto.pto_id}">Deny</button>
+    </td>
+`;
+            teamPtoTableBody.appendChild(row);
+        });
+
+        // Add event listeners for approve and deny buttons
+        document.querySelectorAll('.approve-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const ptoId = this.getAttribute('data-pto-id');
+                managePTO(ptoId, 'approve');
+            });
+        });
+
+        document.querySelectorAll('.deny-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const ptoId = this.getAttribute('data-pto-id');
+                managePTO(ptoId, 'deny');
+            });
+        });
+    });
+}
+
+// Function to manage (approve/deny) PTO
+function managePTO(ptoId, action) {
+    fetch('http://127.0.0.1:5000/pto/manage_pto', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pto_id: ptoId, action: action })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        fetchTeamPTOs();  // Refresh the PTO list after managing
+    });
+}
+
+        // Function to apply PTO (Analyst only)
+        function applyPTO() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            fetch('http://127.0.0.1:5000/pto/apply_pto', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ start_date: startDate, end_date: endDate })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchPTOs();  // Refresh PTO list after applying
+            });
+        }
+
+        // Function to delete PTO (Analyst only)
+        function deletePTO(ptoId) {
+            fetch('http://127.0.0.1:5000/pto/delete_pto', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ pto_id: ptoId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchPTOs();  // Refresh PTO list after deletion
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup - Shift Roaster Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="signupcontainer">
+        <h2>Signup</h2>
+        <form id="signup-form">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <select id="role" required>
+                <option value="" disabled selected>Select Role</option>
+                <option value="analyst">Analyst</option>
+                <option value="manager">Manager</option>
+            </select>
+            <select id="team" required>
+                <option value="" disabled selected>Select Team</option>
+                <!-- Teams will be populated here -->
+            </select>
+            <button type="submit">Sign Up</button>
+        </form>
+        <div id="response-message"></div>
+        <p>Already have an account? <a href="index.html" style="color: #4caf50;">Login here</a></p>
+        <p>No Team Found? <a href="add_team.html" style="color: #4caf50;">Add Team here</a></p>
+    </div>
+
+    <script>
+        // Fetch and populate the teams dropdown
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('http://127.0.0.1:5000/team/all')  // Replace with your backend URL
+                .then(response => response.json())
+                .then(data => {
+                    const teamSelect = document.getElementById('team');
+                    const teams = data.teams;
+
+                    // Populate the team dropdown
+                    teams.forEach(team => {
+                        const option = document.createElement('option');
+                        option.value = team.id;
+                        option.textContent = team.name;
+                        teamSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching teams:', error));
+        });
+
+        // Handle signup form submission
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const teamId = document.getElementById('team').value;
+
+            // Perform form validation and submission
+            fetch('http://127.0.0.1:5000/auth/signup', {  // Replace with your backend URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password, role, team_id: teamId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageElement = document.getElementById('response-message');
+                if (data.error) {
+                    messageElement.textContent = `Error: ${data.error}`;
+                } else {
+                    messageElement.textContent = 'Signup successful!';
+                    // Optionally, redirect to the login page
+                    // window.location.href = 'index.html';
+                }
+            })
+            .catch(error => console.error('Error during signup:', error));
+        });
+    </script>
+</body>
+</html>
