@@ -1,4 +1,4 @@
-projectKey=sqa_2deb36d2a96caaf1e66332295a272526975530ce
+projectKey=squ_f697157b10af9a4370f4fdd938ddf6811decc8f4
 serverUrl=http://localhost:9000
 serverVersion=10.7.0.96327
 dashboardUrl=http://localhost:9000/dashboard?id=Test-Project-2
